@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>Olina Diary ❄️</title>
+<style>
+body {
+    background: linear-gradient(to bottom, #ffffff, #e6f2ff);
+    font-family: Arial, sans-serif;
+    padding: 40px;
+    color: #333;
+}
+
+h1 {
+    text-align: center;
+    color: #4da6ff;
+}
+
+textarea {
+    width: 100%;
+    height: 120px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #cce6ff;
+    resize: none;
+}
+
+button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #66ccff;
+    border: none;
+    border-radius: 20px;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #3399ff;
+}
+
+.entry {
+    background: white;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.date {
+    font-size: 12px;
+    color: #888;
+    margin-top: 5px;
+}
+</style>
+</head>
+<body>
+
+<h1>❄️ Olina Diary 🔥</h1>
+
+<textarea id="content" placeholder="写下今天的心情..."></textarea>
+<br>
+<button onclick="addEntry()">添加日记</button>
+
+<div id="entries"></div>
+
+<script>
+const BIN_ID = "69a05d5343b1c97be9a098fd";
+const API_KEY = "$2a$10$zY2FY2eA8/eR3a.6U4AHbuEBe4yrd38d5EFrAD1742xPfdcBogCbu";
+
+async function loadEntries() {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+        headers: { "X-Access-Key": API_KEY }
+    });
+    const data = await res.json();
+    const entries = data.record.entries || [];
+    const container = document.getElementById("entries");
+    container.innerHTML = "";
+
+    entries.reverse().forEach(entry => {
+        const div = document.createElement("div");
+        div.className = "entry";
+        div.innerHTML = `
+            <div>${entry.text}</div>
+            <div class="date">${entry.date}</div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+async function addEntry() {
+    const text = document.getElementById("content").value;
+    if (!text) return;
+
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+        headers: { "X-Access-Key": API_KEY }
+    });
+    const data = await res.json();
+    const entries = data.record.entries || [];
+
+    entries.push({
+        text: text,
+        date: new Date().toLocaleString()
+    });
+
+    await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Access-Key": API_KEY
+        },
+        body: JSON.stringify({ entries })
+    });
+
+    document.getElementById("content").value = "";
+    loadEntries();
+}
+
+loadEntries();
+</script>
+
+</body>
+</html>
