@@ -7,23 +7,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
 <style>
   :root{
-    --primary:#001f3f;
-    --softBlue1:#e0f7ff;
-    --softBlue2:#a0dfff;
-  }
-  html,body{height:100%;margin:0;}
-  body{
-    font-family: 'Great Vibes', cursive;
-    background: linear-gradient(to bottom, var(--softBlue1), var(--softBlue2));
-    color: var(--primary);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    padding:20px;
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
-    box-sizing:border-box;
-  }
+  --primary:#a0d8ff;       /* 字体和元素颜色，可以偏浅蓝 */
+  --nightSky1:#0b1e3d;     /* 顶部夜空深蓝 */
+  --nightSky2:#1a2f55;     /* 底部稍亮夜空蓝 */
+}
+
+body{
+  font-family: 'Great Vibes', cursive;
+  background: linear-gradient(to bottom, var(--nightSky1), var(--nightSky2));
+  color: var(--primary);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:20px;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  box-sizing:border-box;
+}
 
   h1{margin:18px 0 6px 0; font-size:48px; letter-spacing:1px;}
   .panel{width:100%;max-width:720px;background:rgba(255,255,255,0.88);border-radius:14px;padding:18px 20px;box-shadow:0 6px 22px rgba(0,0,0,0.08);margin-bottom:18px;}
@@ -247,3 +247,4 @@ document.getElementById('addBtn').addEventListener('click', async ()=>{
 </script>
 </body>
 </html>
+
