@@ -1,178 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Olina Diary</title>
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
 <style>
-  body {
-    margin: 0;
+  :root{
+    --primary:#001f3f;
+    --softBlue1:#e0f7ff;
+    --softBlue2:#a0dfff;
+  }
+  html,body{height:100%;margin:0;}
+  body{
     font-family: 'Great Vibes', cursive;
-    background: linear-gradient(to bottom, #e0f7ff, #a0dfff);
-    color: #001f3f;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    background: linear-gradient(to bottom, var(--softBlue1), var(--softBlue2));
+    color: var(--primary);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:20px;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    box-sizing:border-box;
   }
-  h1 { margin-top: 20px; font-size: 3em; }
-  #loginDiv, #diaryDiv { margin-top: 40px; width: 90%; max-width: 600px; }
-  input[type=password], input[type=text], textarea {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border-radius: 12px;
-    border: 1px solid #99dfff;
-    box-sizing: border-box;
-    font-family: 'Great Vibes', cursive;
-    font-size: 1.2em;
+
+  h1{margin:18px 0 6px 0; font-size:48px; letter-spacing:1px;}
+  .panel{width:100%;max-width:720px;background:rgba(255,255,255,0.88);border-radius:14px;padding:18px 20px;box-shadow:0 6px 22px rgba(0,0,0,0.08);margin-bottom:18px;}
+  label{display:block;margin-bottom:6px;font-size:14px}
+  input[type="password"], input[type="text"], textarea{
+    width:100%;
+    padding:10px 12px;
+    border-radius:10px;
+    border:1px solid #cfefff;
+    font-size:18px;
+    box-sizing:border-box;
+    background:rgba(255,255,255,0.98);
+    outline:none;
+    transition:box-shadow .15s ease;
   }
-  textarea { resize: none; overflow: hidden; }
-  button {
-    padding: 12px 25px;
-    border-radius: 12px;
-    border: none;
-    background: linear-gradient(90deg, #99dfff, #66cfff);
-    color: #fff;
-    cursor: pointer;
-    font-size: 16px;
-    transition: all 0.3s ease;
+  input:focus, textarea:focus{box-shadow:0 6px 18px rgba(51,153,255,0.12);}
+
+  textarea{resize:none;min-height:48px;line-height:1.3}
+
+  .btn {
+    display:inline-block;
+    padding:10px 20px;
+    border-radius:12px;
+    border:none;
+    background: linear-gradient(90deg,#99dfff,#66cfff);
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
   }
-  button:hover { background: linear-gradient(90deg, #66cfff, #33bfff); transform: scale(1.05); }
-  .entry { background: rgba(255,255,255,0.7); padding: 15px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s ease; }
-  .entry:hover { transform: translateY(-2px); }
-  .date { font-size: 12px; color: #555; margin-bottom: 5px; }
-  #snowflake { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
-  #writeMsg, #loginMsg { margin-top: 5px; font-size: 14px; }
+  .btn:hover{transform:translateY(-3px); box-shadow:0 8px 20px rgba(51,153,255,0.12)}
+
+  .entries{margin-top:8px}
+  .entry{background:rgba(255,255,255,0.92);border-radius:10px;padding:12px;margin-bottom:12px;box-shadow:0 4px 12px rgba(0,0,0,0.04)}
+  .entry h3{margin:0;font-size:20px}
+  .entry .meta{font-size:12px;color:#6b7f93;margin-top:6px}
+  .msg{margin-top:8px;color:#c0392b;font-weight:600}
+
+  /* snow canvas full-screen */
+  #snow{position:fixed;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:2}
+  /* front container above snow */
+  .front{position:relative;z-index:3;width:100%;max-width:720px}
+  @media (max-width:520px){
+    h1{font-size:36px}
+    input,textarea{font-size:16px}
+  }
 </style>
 </head>
 <body>
-<h1>Olina Diary</h1>
+<canvas id="snow"></canvas>
 
-<div id="loginDiv">
-  <h2>Enter password to view diary</h2>
-  <input type="password" id="viewPassword" placeholder="Password">
-  <button onclick="checkViewPassword()">Enter</button>
-  <p id="loginMsg" style="color:red;"></p>
+<div class="front" style="text-align:center">
+  <h1>Olina Diary</h1>
+
+  <!-- view password panel -->
+  <div id="viewPanel" class="panel">
+    <label for="viewPwd">Enter password to view diary</label>
+    <input id="viewPwd" type="password" placeholder="View password (you know it)">
+    <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn" id="viewBtn">Enter</button>
+      <button class="btn" id="viewGuestBtn" style="background:linear-gradient(90deg,#f0f4f8,#dfeefd);color:var(--primary)">Continue as Guest (read-only)</button>
+    </div>
+    <div id="viewMsg" class="msg" aria-live="polite"></div>
+  </div>
+
+  <!-- diary panel (hidden until view allowed) -->
+  <div id="diaryPanel" class="panel" style="display:none">
+    <div style="display:flex;gap:12px;flex-direction:column">
+      <div>
+        <label for="writePwd">Write password (only you can write)</label>
+        <input id="writePwd" type="password" placeholder="Write password (you know it)">
+      </div>
+
+      <div>
+        <label for="title">Title</label>
+        <input id="title" type="text" placeholder="A short title">
+      </div>
+
+      <div>
+        <label for="content">Content</label>
+        <textarea id="content" placeholder="Write your diary..." rows="2"></textarea>
+      </div>
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn" id="addBtn">Add Entry</button>
+        <button class="btn" id="refreshBtn" style="background:linear-gradient(90deg,#ffffff,#f0f8ff);color:var(--primary)">Refresh</button>
+      </div>
+      <div id="writeMsg" class="msg" aria-live="polite"></div>
+    </div>
+
+    <hr style="margin:16px 0;border:none;border-top:1px solid #e6f7ff">
+
+    <div id="entries" class="entries" aria-live="polite"></div>
+  </div>
 </div>
-
-<div id="diaryDiv" style="display:none;">
-  <h2>Diary Entries</h2>
-  <div id="entries"></div>
-
-  <h3>Add Entry (requires write password)</h3>
-  <input type="password" id="writePassword" placeholder="Write password">
-  <input type="text" id="title" placeholder="Title">
-  <textarea id="content" placeholder="Your content..." rows="1"></textarea>
-  <button onclick="addEntry()">Add Entry</button>
-  <p id="writeMsg" style="color:red;"></p>
-</div>
-
-<canvas id="snowflake"></canvas>
 
 <script>
-const binId = '69a05d5343b1c97be9a098fd';
-const accessKey = 'OlinaDiaryKey'; 
-
-// 雪花动画
-const canvas = document.getElementById('snowflake');
+/* ---------------- snow (canvas) ---------------- */
+const canvas = document.getElementById('snow');
 const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-const flakes = [];
-for(let i=0;i<100;i++) flakes.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*4+1,d:Math.random()*1});
-function drawFlakes(){
+function resize(){canvas.width = innerWidth; canvas.height = innerHeight}
+window.addEventListener('resize', resize); resize();
+const flakes = Array.from({length:90}, ()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*3+1,s:Math.random()*0.8+0.2}));
+function drawSnow(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.fillStyle='white';
-  ctx.beginPath();
-  for(let f of flakes){
-    ctx.moveTo(f.x,f.y);
-    ctx.arc(f.x,f.y,f.r,0,Math.PI*2);
-  }
-  ctx.fill();
-  updateFlakes();
+  flakes.forEach(f=>{
+    ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,Math.PI*2); ctx.fill();
+    f.y += f.s + 0.5;
+    f.x += Math.sin(f.y*0.01)*0.5;
+    if(f.y>canvas.height){ f.y = -10; f.x = Math.random()*canvas.width; }
+  });
+  requestAnimationFrame(drawSnow);
 }
-function updateFlakes(){
-  for(let f of flakes){
-    f.y += Math.pow(f.d,2)+1;
-    f.x += Math.sin(f.y*0.01)*2;
-    if(f.y>canvas.height){f.y=0;f.x=Math.random()*canvas.width;}
-  }
-  requestAnimationFrame(drawFlakes);
-}
-drawFlakes();
+drawSnow();
 
-// textarea 自适应高度
-const textarea = document.getElementById('content');
-textarea.addEventListener('input', e => {
-  e.target.style.height = 'auto';
-  e.target.style.height = (e.target.scrollHeight) + 'px';
-});
+/* ---------------- config ---------------- */
+const API = '/api/addEntry'; // serverless path (Vercel)
+const VIEW_MSG = document.getElementById('viewMsg');
+const WRITE_MSG = document.getElementById('writeMsg');
 
-// 密码保护
-function checkViewPassword(){
-  const pwd = document.getElementById('viewPassword').value;
-  if(pwd==='Olina123'){
-    document.getElementById('loginDiv').style.display='none';
-    document.getElementById('diaryDiv').style.display='block';
-    fetchEntries();
-  } else {
-    document.getElementById('loginMsg').innerText='Wrong password';
-  }
-}
+/* textarea auto-resize */
+const ta = document.getElementById('content');
+ta.addEventListener('input', e => { e.target.style.height='auto'; e.target.style.height = (e.target.scrollHeight)+'px'; });
 
-// 获取日记条目
-async function fetchEntries(){
-  try{
-    const res = await fetch('/api/addEntry', {method:'GET'});
-    const data = await res.json();
-    displayEntries(data);
-  } catch(e){
-    console.log('Fetch failed', e);
-  }
-}
-
-function displayEntries(entries){
-  const container = document.getElementById('entries');
-  container.innerHTML='';
-  entries.forEach(e=>{
+/* helper: render entries (expects array of items) */
+function renderEntries(arr){
+  const c = document.getElementById('entries');
+  c.innerHTML = '';
+  if(!Array.isArray(arr) || arr.length===0){ c.innerHTML = '<p style="color:#556;padding:8px">No entries yet.</p>'; return; }
+  // newest first
+  arr.slice().reverse().forEach(item=>{
     const div = document.createElement('div');
-    div.className='entry';
-    div.innerHTML=`<h4>${e.title}</h4><div class="date">${e.date}</div><p>${e.content}</p>`;
-    container.appendChild(div);
+    div.className = 'entry';
+    const t = document.createElement('h3'); t.textContent = item.title || '(no title)';
+    const d = document.createElement('div'); d.className='meta date'; d.textContent = item.date || '';
+    const p = document.createElement('p'); p.textContent = item.content || '';
+    div.appendChild(t); div.appendChild(d); div.appendChild(p);
+    c.appendChild(div);
   });
 }
 
-// 添加条目
-async function addEntry(){
-  const password = document.getElementById('writePassword').value;
-  const title = document.getElementById('title').value;
-  const content = document.getElementById('content').value;
-
-  if(!title || !content || !password){ document.getElementById('writeMsg').innerText='All fields required'; return; }
-
+/* ---------------- view (get) ----------------
+   We will send the view password to server as query param:
+   GET /api/addEntry?viewPassword=...  -> server validates and returns entries.
+   If user chooses "Continue as Guest", call without password (server will allow read if Bin public).
+*/
+async function fetchEntriesWithView(viewPassword){
   try{
-    const res = await fetch('/api/addEntry', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({password,title,content})
-    });
-    const data = await res.json();
-    if(res.status===200){
-      document.getElementById('writeMsg').innerText='Entry added';
-      fetchEntries();
-      document.getElementById('title').value='';
-      document.getElementById('content').value='';
-      document.getElementById('writePassword').value='';
-    } else {
-      document.getElementById('writeMsg').innerText=data.message;
+    const url = viewPassword ? `${API}?viewPassword=${encodeURIComponent(viewPassword)}` : API;
+    const res = await fetch(url, { method: 'GET' });
+    if(res.status === 401){
+      const j = await res.json(); VIEW_MSG.textContent = j.message || 'Wrong view password'; return null;
     }
-  } catch(e){
-    document.getElementById('writeMsg').innerText='Failed to add entry';
-    console.log(e);
+    if(!res.ok){ VIEW_MSG.textContent = 'Failed to load entries'; return null; }
+    const data = await res.json();
+    // normalize: server returns array
+    renderEntries(Array.isArray(data) ? data : (data.entries || []));
+    VIEW_MSG.textContent = '';
+    return data;
+  }catch(err){
+    console.error(err);
+    VIEW_MSG.textContent = 'Failed to load entries (network)';
+    return null;
   }
 }
+
+/* UI handlers */
+document.getElementById('viewBtn').addEventListener('click', async () => {
+  VIEW_MSG.textContent = 'Checking...';
+  const vp = document.getElementById('viewPwd').value.trim();
+  const ok = await fetchEntriesWithView(vp);
+  if(ok !== null){
+    // show diary panel
+    document.getElementById('viewPanel').style.display = 'none';
+    document.getElementById('diaryPanel').style.display = 'block';
+  }
+});
+document.getElementById('viewGuestBtn').addEventListener('click', async ()=> {
+  VIEW_MSG.textContent = 'Loading public entries...';
+  const ok = await fetchEntriesWithView(); // no password
+  if(ok !== null){
+    document.getElementById('viewPanel').style.display = 'none';
+    document.getElementById('diaryPanel').style.display = 'block';
+  }
+});
+document.getElementById('refreshBtn').addEventListener('click', ()=> {
+  const vp = document.getElementById('viewPwd').value.trim();
+  fetchEntriesWithView(vp);
+});
+
+/* Add entry (POST) — will send write password to server for validation */
+document.getElementById('addBtn').addEventListener('click', async ()=>{
+  WRITE_MSG.textContent = '';
+  const title = document.getElementById('title').value.trim();
+  const content = document.getElementById('content').value.trim();
+  const writePwd = document.getElementById('writePwd').value.trim();
+  if(!title || !content || !writePwd){ WRITE_MSG.textContent = 'All fields required'; return; }
+
+  try{
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ password: writePwd, title, content })
+    });
+    const j = await res.json();
+    if(res.ok){
+      // append optimistic entry and refresh
+      document.getElementById('title').value=''; document.getElementById('content').value=''; document.getElementById('writePwd').value='';
+      WRITE_MSG.style.color = '#0a6'; WRITE_MSG.textContent = 'Entry added';
+      // refresh latest from server (delay tiny to allow JSONBin to settle)
+      setTimeout(()=>{ const vp = document.getElementById('viewPwd').value.trim(); fetchEntriesWithView(vp); }, 600);
+    } else {
+      WRITE_MSG.style.color = '#c0392b'; WRITE_MSG.textContent = j.message || 'Failed to add entry';
+    }
+  }catch(err){
+    console.error(err);
+    WRITE_MSG.style.color = '#c0392b'; WRITE_MSG.textContent = 'Network error, failed to add entry';
+  }
+});
 </script>
 </body>
 </html>
