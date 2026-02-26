@@ -7,65 +7,94 @@
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
 <style>
   :root{
-  --primary:#a0d8ff;       /* 字体和元素颜色，可以偏浅蓝 */
-  --nightSky1:#0b1e3d;     /* 顶部夜空深蓝 */
-  --nightSky2:#1a2f55;     /* 底部稍亮夜空蓝 */
-}
+    --primary:#e0f7ff;         /* 全局文字亮色 */
+    --night1:#0b1a2b;          /* 页面顶部深夜蓝 */
+    --night2:#1a2d44;          /* 页面底部稍亮夜蓝 */
+    --panelBg: rgba(15,30,50,0.85); /* 面板统一深色半透明 */
+    --inputBg: rgba(20,40,70,0.95); /* 输入框深夜色背景 */
+    --btnBg: linear-gradient(90deg,#1a3a6e,#27497f); /* 按钮夜色渐变 */
+    --btnHover: rgba(60,120,200,0.3); /* 按钮hover阴影 */
+    --entryBg: rgba(25,50,80,0.9); /* 日记条目背景 */
+    --entryMeta: #a0c4ff;       /* 条目时间/meta文字 */
+    --msgError: #ff6b6b;        /* 错误信息颜色 */
+    --msgSuccess: #80ffdb;      /* 成功信息颜色 */
+  }
 
-body{
-  font-family: 'Great Vibes', cursive;
-  background: linear-gradient(to bottom, var(--nightSky1), var(--nightSky2));
-  color: var(--primary);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  padding:20px;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  box-sizing:border-box;
-}
+  html,body{height:100%;margin:0;}
+  body{
+    font-family: 'Great Vibes', cursive;
+    background: linear-gradient(to bottom, var(--night1), var(--night2));
+    color: var(--primary);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:20px;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    box-sizing:border-box;
+  }
 
   h1{margin:18px 0 6px 0; font-size:48px; letter-spacing:1px;}
-  .panel{width:100%;max-width:720px;background:rgba(255,255,255,0.88);border-radius:14px;padding:18px 20px;box-shadow:0 6px 22px rgba(0,0,0,0.08);margin-bottom:18px;}
-  label{display:block;margin-bottom:6px;font-size:14px}
+
+  .panel{
+    width:100%;
+    max-width:720px;
+    background: var(--panelBg);
+    border-radius:14px;
+    padding:18px 20px;
+    box-shadow:0 6px 22px rgba(0,0,0,0.3);
+    margin-bottom:18px;
+    color: var(--primary);
+  }
+
+  label{display:block;margin-bottom:6px;font-size:14px;color:var(--primary)}
+
   input[type="password"], input[type="text"], textarea{
     width:100%;
     padding:10px 12px;
     border-radius:10px;
-    border:1px solid #cfefff;
+    border:1px solid #27497f;
     font-size:18px;
     box-sizing:border-box;
-    background:rgba(255,255,255,0.98);
+    background: var(--inputBg);
+    color: var(--primary);
     outline:none;
     transition:box-shadow .15s ease;
   }
-  input:focus, textarea:focus{box-shadow:0 6px 18px rgba(51,153,255,0.12);}
+  input:focus, textarea:focus{box-shadow:0 6px 18px var(--btnHover);}
 
   textarea{resize:none;min-height:48px;line-height:1.3}
 
-  .btn {
+  .btn{
     display:inline-block;
     padding:10px 20px;
     border-radius:12px;
     border:none;
-    background: linear-gradient(90deg,#99dfff,#66cfff);
+    background: var(--btnBg);
     color:white;
     font-size:16px;
     cursor:pointer;
     transition:transform .15s ease, box-shadow .15s ease;
   }
-  .btn:hover{transform:translateY(-3px); box-shadow:0 8px 20px rgba(51,153,255,0.12)}
+  .btn:hover{transform:translateY(-3px); box-shadow:0 8px 20px var(--btnHover);}
 
   .entries{margin-top:8px}
-  .entry{background:rgba(255,255,255,0.92);border-radius:10px;padding:12px;margin-bottom:12px;box-shadow:0 4px 12px rgba(0,0,0,0.04)}
+  .entry{
+    background: var(--entryBg);
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+  }
   .entry h3{margin:0;font-size:20px}
-  .entry .meta{font-size:12px;color:#6b7f93;margin-top:6px}
-  .msg{margin-top:8px;color:#c0392b;font-weight:600}
+  .entry .meta{font-size:12px;color: var(--entryMeta);margin-top:6px}
+  .msg{margin-top:8px;font-weight:600}
 
   /* snow canvas full-screen */
   #snow{position:fixed;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:2}
   /* front container above snow */
   .front{position:relative;z-index:3;width:100%;max-width:720px}
+
   @media (max-width:520px){
     h1{font-size:36px}
     input,textarea{font-size:16px}
@@ -74,7 +103,6 @@ body{
 </head>
 <body>
 <canvas id="snow"></canvas>
-
 <div class="front" style="text-align:center">
   <h1>Olina Diary</h1>
 
@@ -84,7 +112,7 @@ body{
     <input id="viewPwd" type="password" placeholder="View password (you know it)">
     <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
       <button class="btn" id="viewBtn">Enter</button>
-      <button class="btn" id="viewGuestBtn" style="background:linear-gradient(90deg,#f0f4f8,#dfeefd);color:var(--primary)">Continue as Guest (read-only)</button>
+      <!-- 游客浏览按钮已去掉 -->
     </div>
     <div id="viewMsg" class="msg" aria-live="polite"></div>
   </div>
@@ -96,25 +124,22 @@ body{
         <label for="writePwd">Write password (only you can write)</label>
         <input id="writePwd" type="password" placeholder="Write password (you know it)">
       </div>
-
       <div>
         <label for="title">Title</label>
         <input id="title" type="text" placeholder="A short title">
       </div>
-
       <div>
         <label for="content">Content</label>
         <textarea id="content" placeholder="Write your diary..." rows="2"></textarea>
       </div>
-
       <div style="display:flex;gap:12px;flex-wrap:wrap">
         <button class="btn" id="addBtn">Add Entry</button>
-        <button class="btn" id="refreshBtn" style="background:linear-gradient(90deg,#ffffff,#f0f8ff);color:var(--primary)">Refresh</button>
+        <button class="btn" id="refreshBtn">Refresh</button>
       </div>
       <div id="writeMsg" class="msg" aria-live="polite"></div>
     </div>
 
-    <hr style="margin:16px 0;border:none;border-top:1px solid #e6f7ff">
+    <hr style="margin:16px 0;border:none;border-top:1px solid rgba(120,160,220,0.4)">
 
     <div id="entries" class="entries" aria-live="polite"></div>
   </div>
@@ -139,112 +164,6 @@ function drawSnow(){
   requestAnimationFrame(drawSnow);
 }
 drawSnow();
-
-/* ---------------- config ---------------- */
-const API = '/api/addEntry'; // serverless path (Vercel)
-const VIEW_MSG = document.getElementById('viewMsg');
-const WRITE_MSG = document.getElementById('writeMsg');
-
-/* textarea auto-resize */
-const ta = document.getElementById('content');
-ta.addEventListener('input', e => { e.target.style.height='auto'; e.target.style.height = (e.target.scrollHeight)+'px'; });
-
-/* helper: render entries (expects array of items) */
-function renderEntries(arr){
-  const c = document.getElementById('entries');
-  c.innerHTML = '';
-  if(!Array.isArray(arr) || arr.length===0){ c.innerHTML = '<p style="color:#556;padding:8px">No entries yet.</p>'; return; }
-  // newest first
-  arr.slice().reverse().forEach(item=>{
-    const div = document.createElement('div');
-    div.className = 'entry';
-    const t = document.createElement('h3'); t.textContent = item.title || '(no title)';
-    const d = document.createElement('div'); d.className='meta date'; d.textContent = item.date || '';
-    const p = document.createElement('p'); p.textContent = item.content || '';
-    div.appendChild(t); div.appendChild(d); div.appendChild(p);
-    c.appendChild(div);
-  });
-}
-
-/* ---------------- view (get) ----------------
-   We will send the view password to server as query param:
-   GET /api/addEntry?viewPassword=...  -> server validates and returns entries.
-   If user chooses "Continue as Guest", call without password (server will allow read if Bin public).
-*/
-async function fetchEntriesWithView(viewPassword){
-  try{
-    const url = viewPassword ? `${API}?viewPassword=${encodeURIComponent(viewPassword)}` : API;
-    const res = await fetch(url, { method: 'GET' });
-    if(res.status === 401){
-      const j = await res.json(); VIEW_MSG.textContent = j.message || 'Wrong view password'; return null;
-    }
-    if(!res.ok){ VIEW_MSG.textContent = 'Failed to load entries'; return null; }
-    const data = await res.json();
-    // normalize: server returns array
-    renderEntries(Array.isArray(data) ? data : (data.entries || []));
-    VIEW_MSG.textContent = '';
-    return data;
-  }catch(err){
-    console.error(err);
-    VIEW_MSG.textContent = 'Failed to load entries (network)';
-    return null;
-  }
-}
-
-/* UI handlers */
-document.getElementById('viewBtn').addEventListener('click', async () => {
-  VIEW_MSG.textContent = 'Checking...';
-  const vp = document.getElementById('viewPwd').value.trim();
-  const ok = await fetchEntriesWithView(vp);
-  if(ok !== null){
-    // show diary panel
-    document.getElementById('viewPanel').style.display = 'none';
-    document.getElementById('diaryPanel').style.display = 'block';
-  }
-});
-document.getElementById('viewGuestBtn').addEventListener('click', async ()=> {
-  VIEW_MSG.textContent = 'Loading public entries...';
-  const ok = await fetchEntriesWithView(); // no password
-  if(ok !== null){
-    document.getElementById('viewPanel').style.display = 'none';
-    document.getElementById('diaryPanel').style.display = 'block';
-  }
-});
-document.getElementById('refreshBtn').addEventListener('click', ()=> {
-  const vp = document.getElementById('viewPwd').value.trim();
-  fetchEntriesWithView(vp);
-});
-
-/* Add entry (POST) — will send write password to server for validation */
-document.getElementById('addBtn').addEventListener('click', async ()=>{
-  WRITE_MSG.textContent = '';
-  const title = document.getElementById('title').value.trim();
-  const content = document.getElementById('content').value.trim();
-  const writePwd = document.getElementById('writePwd').value.trim();
-  if(!title || !content || !writePwd){ WRITE_MSG.textContent = 'All fields required'; return; }
-
-  try{
-    const res = await fetch(API, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ password: writePwd, title, content })
-    });
-    const j = await res.json();
-    if(res.ok){
-      // append optimistic entry and refresh
-      document.getElementById('title').value=''; document.getElementById('content').value=''; document.getElementById('writePwd').value='';
-      WRITE_MSG.style.color = '#0a6'; WRITE_MSG.textContent = 'Entry added';
-      // refresh latest from server (delay tiny to allow JSONBin to settle)
-      setTimeout(()=>{ const vp = document.getElementById('viewPwd').value.trim(); fetchEntriesWithView(vp); }, 600);
-    } else {
-      WRITE_MSG.style.color = '#c0392b'; WRITE_MSG.textContent = j.message || 'Failed to add entry';
-    }
-  }catch(err){
-    console.error(err);
-    WRITE_MSG.style.color = '#c0392b'; WRITE_MSG.textContent = 'Network error, failed to add entry';
-  }
-});
 </script>
 </body>
 </html>
-
