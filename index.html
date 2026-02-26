@@ -4,118 +4,156 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Olina Diary</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
   <style>
     body {
-      background: #e0f7ff; /* 温柔淡蓝 */
-      font-family: 'Pacifico', cursive; /* 手写体 */
-      color: #03396c;
       margin: 0;
-      padding: 0;
+      font-family: 'Pacifico', cursive;
+      background: linear-gradient(to bottom, #e0f7ff, #cfefff);
+      color: #034f84;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 50px;
       overflow-x: hidden;
     }
-    .container {
-      max-width: 600px;
-      margin: 50px auto;
-      padding: 20px;
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 15px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
-    }
-    h1 { text-align: center; }
-    input, textarea, button {
-      width: 100%;
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 10px;
-      border: 1px solid #b3e0ff;
-      font-family: 'Pacifico', cursive;
-    }
-    button {
-      background: #81d4fa;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-      font-size: 18px;
-    }
-    button:hover { background: #4fc3f7; }
-    #snowflake {
+
+    h1 { margin-bottom: 20px; }
+
+    .snowflake {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 9999;
-    }
-    .flake {
-      position: absolute;
-      color: white;
+      top: -10px;
       font-size: 1em;
+      color: white;
       user-select: none;
-      animation: fall linear infinite;
+      pointer-events: none;
+      animation-name: fall;
+      animation-duration: 10s;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
     }
+
     @keyframes fall {
       0% { transform: translateY(-10px); }
-      100% { transform: translateY(100vh); }
+      100% { transform: translateY(110vh); }
+    }
+
+    .container {
+      width: 90%;
+      max-width: 600px;
+      background: rgba(255,255,255,0.8);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+
+    input, textarea, button {
+      width: 100%;
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #034f84;
+      font-family: 'Pacifico', cursive;
+      font-size: 1em;
+    }
+
+    button {
+      background-color: #034f84;
+      color: white;
+      cursor: pointer;
+    }
+
+    .entry {
+      margin-bottom: 20px;
+      padding: 10px;
+      border-bottom: 1px solid #034f84;
+    }
+
+    .entry-date {
+      font-size: 0.8em;
+      color: #555;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Olina Diary</h1>
-    <input type="password" id="password" placeholder="Enter password to add entry">
-    <input type="text" id="title" placeholder="Title">
-    <textarea id="content" rows="5" placeholder="Content"></textarea>
-    <button id="addBtn">Add Entry</button>
-  </div>
 
-  <div id="snowflake"></div>
+<h1>Olina Diary</h1>
 
-  <script>
-    // ❄️ 雪花动画
-    const snowContainer = document.getElementById('snowflake');
-    function createSnow() {
-      const flake = document.createElement('div');
-      flake.className = 'flake';
-      flake.style.left = Math.random() * window.innerWidth + 'px';
-      flake.style.fontSize = (10 + Math.random()*20) + 'px';
-      flake.textContent = '❄';
-      flake.style.animationDuration = (5 + Math.random()*5) + 's';
-      snowContainer.appendChild(flake);
-      setTimeout(() => flake.remove(), 10000);
-    }
-    setInterval(createSnow, 200);
+<div class="container" id="login-container">
+  <input type="password" id="viewPassword" placeholder="Enter password to view">
+  <button onclick="loginView()">View Diary</button>
+</div>
 
-    // 🌟 Add Entry
-    document.getElementById('addBtn').addEventListener('click', async () => {
-      const title = document.getElementById('title').value;
-      const content = document.getElementById('content').value;
-      const password = document.getElementById('password').value;
+<div class="container" id="diary-container" style="display:none;">
+  <input type="password" id="writePassword" placeholder="Enter password to add entry">
+  <input type="text" id="title" placeholder="Title">
+  <textarea id="content" placeholder="Write your diary here..."></textarea>
+  <button onclick="addEntry()">Add Entry</button>
 
-      if(!title || !content || !password){
-        alert('Please fill all fields');
-        return;
-      }
+  <div id="entries"></div>
+</div>
 
-      try {
-        const res = await fetch('/api/addEntry', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, content, password })
-        });
-        const data = await res.json();
-        alert(data.message);
-        if(res.status===200){
-          document.getElementById('title').value = '';
-          document.getElementById('content').value = '';
-          document.getElementById('password').value = '';
-        }
-      } catch(e){
-        alert('Error connecting to server');
-      }
+<script>
+  const BIN_API = '/api/addEntry.js';
+
+  // 雪花动画
+  for(let i=0;i<50;i++){
+    const snow = document.createElement('div');
+    snow.classList.add('snowflake');
+    snow.style.left = Math.random()*100 + 'vw';
+    snow.style.fontSize = (Math.random()*10 + 10) + 'px';
+    snow.style.animationDuration = (Math.random()*5 + 5) + 's';
+    snow.innerHTML = '❄';
+    document.body.appendChild(snow);
+  }
+
+  async function fetchEntries(){
+    const res = await fetch(BIN_API);
+    const data = await res.json();
+    const container = document.getElementById('entries');
+    container.innerHTML = '';
+    data.forEach(d => {
+      const div = document.createElement('div');
+      div.className = 'entry';
+      div.innerHTML = `<div class="entry-date">${d.date}</div><strong>${d.title}</strong><p>${d.content}</p>`;
+      container.appendChild(div);
     });
-  </script>
+  }
 
-  <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+  function loginView(){
+    const pass = document.getElementById('viewPassword').value;
+    if(pass === 'Olina123'){
+      document.getElementById('login-container').style.display = 'none';
+      document.getElementById('diary-container').style.display = 'block';
+      fetchEntries();
+    } else {
+      alert('Wrong password!');
+    }
+  }
+
+  async function addEntry(){
+    const password = document.getElementById('writePassword').value;
+    const title = document.getElementById('title').value;
+    const content = document.getElementById('content').value;
+    if(!password || !title || !content) { alert('Fill all fields!'); return; }
+
+    const res = await fetch(BIN_API, {
+      method:'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({password, title, content})
+    });
+    const json = await res.json();
+    if(res.status === 200){
+      alert(json.message);
+      document.getElementById('title').value = '';
+      document.getElementById('content').value = '';
+      fetchEntries();
+    } else {
+      alert(json.message);
+    }
+  }
+</script>
 </body>
 </html>
