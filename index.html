@@ -1,159 +1,276 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Olina Diary</title>
-  <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Pacifico', cursive;
-      background: linear-gradient(to bottom, #e0f7ff, #cfefff);
-      color: #034f84;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding-top: 50px;
-      overflow-x: hidden;
-    }
-
-    h1 { margin-bottom: 20px; }
-
-    .snowflake {
-      position: fixed;
-      top: -10px;
-      font-size: 1em;
-      color: white;
-      user-select: none;
-      pointer-events: none;
-      animation-name: fall;
-      animation-duration: 10s;
-      animation-timing-function: linear;
-      animation-iteration-count: infinite;
-    }
-
-    @keyframes fall {
-      0% { transform: translateY(-10px); }
-      100% { transform: translateY(110vh); }
-    }
-
-    .container {
-      width: 90%;
-      max-width: 600px;
-      background: rgba(255,255,255,0.8);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.2);
-    }
-
-    input, textarea, button {
-      width: 100%;
-      margin-bottom: 15px;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #034f84;
-      font-family: 'Pacifico', cursive;
-      font-size: 1em;
-    }
-
-    button {
-      background-color: #034f84;
-      color: white;
-      cursor: pointer;
-    }
-
-    .entry {
-      margin-bottom: 20px;
-      padding: 10px;
-      border-bottom: 1px solid #034f84;
-    }
-
-    .entry-date {
-      font-size: 0.8em;
-      color: #555;
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Olina Diary</title>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<style>
+  :root{--blue:#0b63a3;--soft:#e6f7ff}
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: "Pacifico", cursive;
+    background: linear-gradient(to bottom, #eaf8ff, #dff4ff);
+    color: #033a5a;
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:40px 16px;
+  }
+  .card{
+    width:100%;
+    max-width:760px;
+    background: rgba(255,255,255,0.92);
+    border-radius:14px;
+    box-shadow:0 10px 30px rgba(8,40,60,0.12);
+    padding:22px;
+  }
+  h1{ text-align:center; margin:0 0 14px; font-size:40px; color:var(--blue) }
+  .row{display:flex; gap:12px; align-items:center}
+  .col{display:flex; flex-direction:column; gap:10px}
+  input[type="text"], input[type="password"], textarea{
+    width:100%;
+    padding:10px 12px;
+    border-radius:10px;
+    border:1px solid rgba(11,99,163,0.12);
+    font-family: "Pacifico", cursive;
+    font-size:16px;
+    resize:vertical;
+  }
+  textarea{ min-height:120px; }
+  button{
+    padding:10px 14px;
+    border-radius:10px;
+    border:none;
+    background:var(--blue);
+    color:#fff;
+    cursor:pointer;
+    font-size:16px;
+  }
+  button.secondary{ background:#8fc9ff; color:#07394f }
+  .entries{ margin-top:18px; display:flex; flex-direction:column; gap:12px }
+  .entry{
+    padding:12px;
+    border-radius:10px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(245,251,255,0.85));
+    border:1px solid rgba(11,99,163,0.06);
+  }
+  .meta{ font-size:12px; color:#2b6b91; margin-bottom:6px }
+  .entry-title{ font-weight:700; font-size:18px; color: #014a72; margin:0 0 6px }
+  .entry-content{ margin:0; white-space:pre-wrap; line-height:1.4; color:#083a55 }
+  .controls{ margin-top:8px; display:flex; gap:8px }
+  .small{ font-size:13px; color:#2b6b91 }
+  /* snow */
+  #snow { position:fixed; inset:0; pointer-events:none; z-index: 1000; }
+  .flake { position:absolute; color:#fff; user-select:none; font-size:16px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.08)); opacity:0.95; animation: fall linear infinite; }
+  @keyframes fall { from{transform: translateY(-10vh);} to{transform: translateY(110vh);} }
+  /* hide edit UI on small screens a bit */
+  @media (max-width:520px){ .row{flex-direction:column} button{width:100%} }
+</style>
 </head>
 <body>
+  <div id="snow"></div>
 
-<h1>Olina Diary</h1>
+  <div class="card" role="main">
+    <h1>Olina Diary</h1>
 
-<div class="container" id="login-container">
-  <input type="password" id="viewPassword" placeholder="Enter password to view">
-  <button onclick="loginView()">View Diary</button>
-</div>
+    <!-- VIEW login -->
+    <div id="viewBox">
+      <div class="col">
+        <input id="viewPassword" type="password" placeholder="Enter password to view (Olina123)" />
+        <div class="row">
+          <button id="viewBtn">Enter</button>
+          <div class="small">Enter <strong>Olina123</strong> to view the diary</div>
+        </div>
+      </div>
+    </div>
 
-<div class="container" id="diary-container" style="display:none;">
-  <input type="password" id="writePassword" placeholder="Enter password to add entry">
-  <input type="text" id="title" placeholder="Title">
-  <textarea id="content" placeholder="Write your diary here..."></textarea>
-  <button onclick="addEntry()">Add Entry</button>
+    <!-- DIARY UI -->
+    <div id="diaryBox" style="display:none;">
+      <div class="col">
+        <input id="titleInput" type="text" placeholder="Title" />
+        <textarea id="contentInput" placeholder="Write your diary here..."></textarea>
 
-  <div id="entries"></div>
-</div>
+        <div class="row" style="align-items:center;">
+          <input id="writePassword" type="password" placeholder="Enter write password (Olina890)"/>
+          <button id="addBtn">Add Entry</button>
+        </div>
+        <div class="small">To add / edit / delete entries you must know <strong>Olina890</strong>.</div>
+      </div>
+
+      <div id="entries" class="entries" aria-live="polite" style="margin-top:18px;"></div>
+    </div>
+  </div>
 
 <script>
-  const BIN_API = '/api/addEntry.js';
+/* ---------- Snow effect ---------- */
+const snowRoot = document.getElementById('snow');
+function spawnFlake(){
+  const f = document.createElement('div');
+  f.className='flake';
+  const size = Math.random()*16 + 10;
+  f.style.fontSize = size+'px';
+  f.style.left = Math.random()*100 + 'vw';
+  f.style.opacity = 0.7 + Math.random()*0.3;
+  f.style.animationDuration = (6 + Math.random()*8) + 's';
+  f.textContent = '❄';
+  snowRoot.appendChild(f);
+  setTimeout(()=> f.remove(), 16000);
+}
+setInterval(spawnFlake, 180);
+for(let i=0;i<18;i++) spawnFlake();
 
-  // 雪花动画
-  for(let i=0;i<50;i++){
-    const snow = document.createElement('div');
-    snow.classList.add('snowflake');
-    snow.style.left = Math.random()*100 + 'vw';
-    snow.style.fontSize = (Math.random()*10 + 10) + 'px';
-    snow.style.animationDuration = (Math.random()*5 + 5) + 's';
-    snow.innerHTML = '❄';
-    document.body.appendChild(snow);
+/* ---------- App logic ---------- */
+const API = '/api/addEntry'; // calls serverless function
+const VIEW_PW = 'Olina123';
+const WRITE_PW = 'Olina890';
+
+const viewBox = document.getElementById('viewBox');
+const diaryBox = document.getElementById('diaryBox');
+const viewBtn = document.getElementById('viewBtn');
+const addBtn = document.getElementById('addBtn');
+
+let writerAuthenticated = false; // becomes true if user enters write password
+
+viewBtn.addEventListener('click', () => {
+  const val = document.getElementById('viewPassword').value.trim();
+  if(val === VIEW_PW){
+    viewBox.style.display = 'none';
+    diaryBox.style.display = 'block';
+    loadEntries();
+  } else {
+    alert('Wrong view password');
   }
+});
 
-  async function fetchEntries(){
-    const res = await fetch(BIN_API);
-    const data = await res.json();
-    const container = document.getElementById('entries');
-    container.innerHTML = '';
-    data.forEach(d => {
-      const div = document.createElement('div');
-      div.className = 'entry';
-      div.innerHTML = `<div class="entry-date">${d.date}</div><strong>${d.title}</strong><p>${d.content}</p>`;
-      container.appendChild(div);
-    });
+async function loadEntries(){
+  try{
+    const res = await fetch(API);
+    if(!res.ok) throw new Error('Failed to load');
+    const data = await res.json(); // expected array of entries
+    renderEntries(data || []);
+  } catch(e){
+    console.error(e);
+    alert('Could not load diary entries.');
   }
+}
 
-  function loginView(){
-    const pass = document.getElementById('viewPassword').value;
-    if(pass === 'Olina123'){
-      document.getElementById('login-container').style.display = 'none';
-      document.getElementById('diary-container').style.display = 'block';
-      fetchEntries();
-    } else {
-      alert('Wrong password!');
+function renderEntries(entries){
+  const root = document.getElementById('entries');
+  root.innerHTML = '';
+  // show newest first
+  entries.slice().reverse().forEach((entry, idx)=>{
+    const i = entries.length - 1 - idx; // compute original index
+    const el = document.createElement('div');
+    el.className = 'entry';
+    const time = entry.time || '';
+    el.innerHTML = `
+      <div class="meta"><span class="entry-date">${entry.date} ${time}</span></div>
+      <div class="entry-title">${escapeHtml(entry.title || '')}</div>
+      <div class="entry-content">${escapeHtml(entry.content || '')}</div>
+    `;
+    // controls (edit/delete) - only show if writerAuthenticated true
+    const ctr = document.createElement('div');
+    ctr.className = 'controls';
+    if(writerAuthenticated){
+      const editBtn = document.createElement('button');
+      editBtn.className = 'secondary';
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = ()=> editEntry(i);
+      const delBtn = document.createElement('button');
+      delBtn.textContent = 'Delete';
+      delBtn.onclick = ()=> deleteEntry(i);
+      ctr.appendChild(editBtn);
+      ctr.appendChild(delBtn);
+      el.appendChild(ctr);
     }
+    root.appendChild(el);
+  });
+}
+
+/* helper escape */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});
+}
+
+/* Add entry */
+addBtn.addEventListener('click', async () => {
+  const title = document.getElementById('titleInput').value.trim();
+  const content = document.getElementById('contentInput').value.trim();
+  const pw = document.getElementById('writePassword').value.trim();
+
+  if(!title || !content || !pw){ alert('Please fill title, content and write password'); return; }
+
+  // authenticate write password locally first
+  if(pw !== WRITE_PW){
+    alert('Wrong write password');
+    return;
   }
 
-  async function addEntry(){
-    const password = document.getElementById('writePassword').value;
-    const title = document.getElementById('title').value;
-    const content = document.getElementById('content').value;
-    if(!password || !title || !content) { alert('Fill all fields!'); return; }
+  // set writerAuthenticated so controls appear after load
+  writerAuthenticated = true;
 
-    const res = await fetch(BIN_API, {
-      method:'POST',
+  try{
+    const now = new Date();
+    const date = now.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+    const time = now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+
+    const res = await fetch(API, {
+      method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({password, title, content})
+      body: JSON.stringify({ password: pw, title, content, date, time })
     });
     const json = await res.json();
-    if(res.status === 200){
-      alert(json.message);
-      document.getElementById('title').value = '';
-      document.getElementById('content').value = '';
-      fetchEntries();
+    if(res.ok){
+      document.getElementById('titleInput').value = '';
+      document.getElementById('contentInput').value = '';
+      loadEntries();
     } else {
-      alert(json.message);
+      alert(json.message || 'Failed to add');
     }
+  } catch(err){
+    console.error(err);
+    alert('Network or server error');
   }
+});
+
+/* Edit entry: prompt user for new values, send PUT */
+async function editEntry(index){
+  const newTitle = prompt('Edit title:');
+  if(newTitle === null) return;
+  const newContent = prompt('Edit content:', '');
+  if(newContent === null) return;
+  const pw = prompt('Enter write password to confirm:');
+  if(pw !== WRITE_PW){ alert('Wrong password'); return; }
+  try{
+    const res = await fetch(API, {
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ password: pw, index, title: newTitle, content: newContent })
+    });
+    const json = await res.json();
+    if(res.ok) loadEntries(); else alert(json.message || 'Failed to edit');
+  } catch(e){ console.error(e); alert('Network error'); }
+}
+
+/* Delete entry */
+async function deleteEntry(index){
+  const ok = confirm('Delete this entry permanently?');
+  if(!ok) return;
+  const pw = prompt('Enter write password to confirm delete:');
+  if(pw !== WRITE_PW){ alert('Wrong password'); return; }
+  try{
+    const res = await fetch(API, {
+      method:'DELETE',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ password: pw, index })
+    });
+    const json = await res.json();
+    if(res.ok) loadEntries(); else alert(json.message || 'Failed to delete');
+  } catch(e){ console.error(e); alert('Network error'); }
+}
 </script>
 </body>
 </html>
