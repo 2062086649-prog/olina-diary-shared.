@@ -112,7 +112,7 @@
     <input id="viewPwd" type="password" placeholder="View password (you know it)">
     <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
       <button class="btn" id="viewBtn">Enter</button>
-      <!-- 游客浏览按钮已去掉 -->
+      <!-- 游客按钮已完全移除 -->
     </div>
     <div id="viewMsg" class="msg" aria-live="polite"></div>
   </div>
@@ -164,6 +164,94 @@ function drawSnow(){
   requestAnimationFrame(drawSnow);
 }
 drawSnow();
+
+/* ---------------- view (get) ---------------- */
+const API = '/api/addEntry';
+const VIEW_MSG = document.getElementById('viewMsg');
+const WRITE_MSG = document.getElementById('writeMsg');
+
+/* textarea auto-resize */
+const ta = document.getElementById('content');
+ta.addEventListener('input', e => { e.target.style.height='auto'; e.target.style.height = (e.target.scrollHeight)+'px'; });
+
+function renderEntries(arr){
+  const c = document.getElementById('entries');
+  c.innerHTML = '';
+  if(!Array.isArray(arr) || arr.length===0){ c.innerHTML = '<p style="color:#556;padding:8px">No entries yet.</p>'; return; }
+  arr.slice().reverse().forEach(item=>{
+    const div = document.createElement('div');
+    div.className = 'entry';
+    const t = document.createElement('h3'); t.textContent = item.title || '(no title)';
+    const d = document.createElement('div'); d.className='meta date'; d.textContent = item.date || '';
+    const p = document.createElement('p'); p.textContent = item.content || '';
+    div.appendChild(t); div.appendChild(d); div.appendChild(p);
+    c.appendChild(div);
+  });
+}
+
+async function fetchEntriesWithView(viewPassword){
+  try{
+    const url = viewPassword ? `${API}?viewPassword=${encodeURIComponent(viewPassword)}` : API;
+    const res = await fetch(url, { method: 'GET' });
+    if(res.status === 401){
+      const j = await res.json(); VIEW_MSG.textContent = j.message || 'Wrong view password'; return null;
+    }
+    if(!res.ok){ VIEW_MSG.textContent = 'Failed to load entries'; return null; }
+    const data = await res.json();
+    renderEntries(Array.isArray(data) ? data : (data.entries || []));
+    VIEW_MSG.textContent = '';
+    return data;
+  }catch(err){
+    console.error(err);
+    VIEW_MSG.textContent = 'Failed to load entries (network)';
+    return null;
+  }
+}
+
+/* UI handlers */
+document.getElementById('viewBtn').addEventListener('click', async () => {
+  VIEW_MSG.textContent = 'Checking...';
+  const vp = document.getElementById('viewPwd').value.trim();
+  const ok = await fetchEntriesWithView(vp);
+  if(ok !== null){
+    document.getElementById('viewPanel').style.display = 'none';
+    document.getElementById('diaryPanel').style.display = 'block';
+  }
+});
+
+// 已移除 viewGuestBtn 相关事件绑定
+
+document.getElementById('refreshBtn').addEventListener('click', ()=> {
+  const vp = document.getElementById('viewPwd').value.trim();
+  fetchEntriesWithView(vp);
+});
+
+document.getElementById('addBtn').addEventListener('click', async ()=>{
+  WRITE_MSG.textContent = '';
+  const title = document.getElementById('title').value.trim();
+  const content = document.getElementById('content').value.trim();
+  const writePwd = document.getElementById('writePwd').value.trim();
+  if(!title || !content || !writePwd){ WRITE_MSG.textContent = 'All fields required'; return; }
+
+  try{
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ password: writePwd, title, content })
+    });
+    const j = await res.json();
+    if(res.ok){
+      document.getElementById('title').value=''; document.getElementById('content').value=''; document.getElementById('writePwd').value='';
+      WRITE_MSG.style.color = '#0a6'; WRITE_MSG.textContent = 'Entry added';
+      setTimeout(()=>{ const vp = document.getElementById('viewPwd').value.trim(); fetchEntriesWithView(vp); }, 600);
+    } else {
+      WRITE_MSG.style.color = '#c0392b'; WRITE_MSG.textContent = j.message || 'Failed to add entry';
+    }
+  }catch(err){
+    console.error(err);
+    WRITE_MSG.style.color = '#c0392b'; WRITE_MSG.textContent = 'Network error, failed to add entry';
+  }
+});
 </script>
 </body>
 </html>
