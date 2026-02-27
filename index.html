@@ -3,255 +3,213 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Olina Diary</title>
+<title>Pressure is a privilege.</title>
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --primary:#e0f7ff;         /* 全局文字亮色 */
-    --night1:#0b1a2b;          /* 页面顶部深夜蓝 */
-    --night2:#1a2d44;          /* 页面底部稍亮夜蓝 */
-    --panelBg: rgba(15,30,50,0.85); /* 面板统一深色半透明 */
-    --inputBg: rgba(20,40,70,0.95); /* 输入框深夜色背景 */
-    --btnBg: linear-gradient(90deg,#1a3a6e,#27497f); /* 按钮夜色渐变 */
-    --btnHover: rgba(60,120,200,0.3); /* 按钮hover阴影 */
-    --entryBg: rgba(25,50,80,0.9); /* 日记条目背景 */
-    --entryMeta: #a0c4ff;       /* 条目时间/meta文字 */
-    --msgError: #ff6b6b;        /* 错误信息颜色 */
-    --msgSuccess: #80ffdb;      /* 成功信息颜色 */
-  }
+:root{
+  --primary:#e0f7ff;
+  --night1:#0b1a2b;
+  --night2:#1a2d44;
+  --panelBg: rgba(15,30,50,0.85);
+  --inputBg: rgba(20,40,70,0.95);
+  --btnBg: linear-gradient(90deg,#1a3a6e,#27497f);
+  --btnHover: rgba(60,120,200,0.3);
+  --entryBg: rgba(25,50,80,0.9);
+  --entryMeta: #a0c4ff;
+}
 
-  html,body{height:100%;margin:0;}
-  body{
-    font-family: 'Great Vibes', cursive;
-    background: linear-gradient(to bottom, var(--night1), var(--night2));
-    color: var(--primary);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    padding:20px;
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
-    box-sizing:border-box;
-  }
+html,body{height:100%;margin:0;}
+body{
+  font-family: 'Great Vibes', cursive;
+  background: linear-gradient(to bottom, var(--night1), var(--night2));
+  color: var(--primary);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:20px;
+  box-sizing:border-box;
+  overflow:hidden;
+}
 
-  h1{margin:18px 0 6px 0; font-size:48px; letter-spacing:1px;}
+h1{margin:18px 0 6px 0;font-size:46px;text-align:center}
 
-  .panel{
-    width:100%;
-    max-width:720px;
-    background: var(--panelBg);
-    border-radius:14px;
-    padding:18px 20px;
-    box-shadow:0 6px 22px rgba(0,0,0,0.3);
-    margin-bottom:18px;
-    color: var(--primary);
-  }
+.panel{
+  width:100%;
+  max-width:720px;
+  background: var(--panelBg);
+  border-radius:14px;
+  padding:18px 20px;
+  box-shadow:0 6px 22px rgba(0,0,0,0.3);
+  margin-bottom:18px;
+}
 
-  label{display:block;margin-bottom:6px;font-size:14px;color:var(--primary)}
+input,textarea{
+  width:100%;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid #27497f;
+  font-size:16px;
+  background: var(--inputBg);
+  color: var(--primary);
+  box-sizing:border-box;
+  margin-top:6px;
+}
 
-  input[type="password"], input[type="text"], textarea{
-    width:100%;
-    padding:10px 12px;
-    border-radius:10px;
-    border:1px solid #27497f;
-    font-size:18px;
-    box-sizing:border-box;
-    background: var(--inputBg);
-    color: var(--primary);
-    outline:none;
-    transition:box-shadow .15s ease;
-  }
-  input:focus, textarea:focus{box-shadow:0 6px 18px var(--btnHover);}
+.btn{
+  padding:10px 20px;
+  border-radius:12px;
+  border:none;
+  background: var(--btnBg);
+  color:white;
+  cursor:pointer;
+  margin-top:10px;
+}
 
-  textarea{resize:none;min-height:48px;line-height:1.3}
+.entry{
+  background: var(--entryBg);
+  border-radius:10px;
+  padding:12px;
+  margin-bottom:12px;
+}
 
-  .btn{
-    display:inline-block;
-    padding:10px 20px;
-    border-radius:12px;
-    border:none;
-    background: var(--btnBg);
-    color:white;
-    font-size:16px;
-    cursor:pointer;
-    transition:transform .15s ease, box-shadow .15s ease;
-  }
-  .btn:hover{transform:translateY(-3px); box-shadow:0 8px 20px var(--btnHover);}
+.meta{font-size:12px;color:var(--entryMeta)}
 
-  .entries{margin-top:8px}
-  .entry{
-    background: var(--entryBg);
-    border-radius:10px;
-    padding:12px;
-    margin-bottom:12px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.3);
-  }
-  .entry h3{margin:0;font-size:20px}
-  .entry .meta{font-size:12px;color: var(--entryMeta);margin-top:6px}
-  .msg{margin-top:8px;font-weight:600}
-
-  /* snow canvas full-screen */
-  #snow{position:fixed;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:2}
-  /* front container above snow */
-  .front{position:relative;z-index:3;width:100%;max-width:720px}
-
-  @media (max-width:520px){
-    h1{font-size:36px}
-    input,textarea{font-size:16px}
-  }
+#snowCanvas{
+  position:fixed;
+  left:0;
+  top:0;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  z-index:0;
+}
+.front{
+  position:relative;
+  z-index:2;
+  width:100%;
+  max-width:720px;
+}
 </style>
 </head>
 <body>
-<canvas id="snow"></canvas>
-<div class="front" style="text-align:center">
-  <h1>Olina Diary</h1>
 
-  <!-- view password panel -->
-  <div id="viewPanel" class="panel">
-    <label for="viewPwd">Enter password to view diary</label>
-    <input id="viewPwd" type="password" placeholder="View password (you know it)">
-    <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
-      <button class="btn" id="viewBtn">Enter</button>
-      <!-- 游客按钮已完全移除 -->
-    </div>
-    <div id="viewMsg" class="msg" aria-live="polite"></div>
-  </div>
+<canvas id="snowCanvas"></canvas>
 
-  <!-- diary panel (hidden until view allowed) -->
-  <div id="diaryPanel" class="panel" style="display:none">
-    <div style="display:flex;gap:12px;flex-direction:column">
-      <div>
-        <label for="writePwd">Write password (only you can write)</label>
-        <input id="writePwd" type="password" placeholder="Write password (you know it)">
-      </div>
-      <div>
-        <label for="title">Title</label>
-        <input id="title" type="text" placeholder="A short title">
-      </div>
-      <div>
-        <label for="content">Content</label>
-        <textarea id="content" placeholder="Write your diary..." rows="2"></textarea>
-      </div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap">
-        <button class="btn" id="addBtn">Add Entry</button>
-        <button class="btn" id="refreshBtn">Refresh</button>
-      </div>
-      <div id="writeMsg" class="msg" aria-live="polite"></div>
-    </div>
+<div class="front">
+<h1>Pressure is a privilege.</h1>
 
-    <hr style="margin:16px 0;border:none;border-top:1px solid rgba(120,160,220,0.4)">
+<div id="viewPanel" class="panel">
+<label>Enter password</label>
+<input id="viewPwd" type="password">
+<button class="btn" id="viewBtn">Enter</button>
+<div id="viewMsg"></div>
+</div>
 
-    <div id="entries" class="entries" aria-live="polite"></div>
-  </div>
+<div id="diaryPanel" class="panel" style="display:none">
+<label>Write password</label>
+<input id="writePwd" type="password">
+
+<label>Title</label>
+<input id="title" type="text">
+
+<label>Content</label>
+<textarea id="content"></textarea>
+
+<button class="btn" id="addBtn">Add Entry</button>
+<button class="btn" id="refreshBtn">Refresh</button>
+
+<div id="entries"></div>
+</div>
 </div>
 
 <script>
-/* ---------------- snow (canvas) ---------------- */
-const canvas = document.getElementById('snow');
-const ctx = canvas.getContext('2d');
-function resize(){canvas.width = innerWidth; canvas.height = innerHeight}
-window.addEventListener('resize', resize); resize();
-const flakes = Array.from({length:90}, ()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*3+1,s:Math.random()*0.8+0.2}));
-function drawSnow(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle='white';
-  flakes.forEach(f=>{
-    ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,Math.PI*2); ctx.fill();
-    f.y += f.s + 0.5;
-    f.x += Math.sin(f.y*0.01)*0.5;
-    if(f.y>canvas.height){ f.y = -10; f.x = Math.random()*canvas.width; }
+const API='/api/addEntry';
+
+document.getElementById('viewBtn').onclick=async()=>{
+  const pwd=document.getElementById('viewPwd').value.trim();
+  const r=await fetch(`${API}?viewPassword=${encodeURIComponent(pwd)}`);
+  if(r.status!==200){document.getElementById('viewMsg').innerText='Wrong password';return;}
+  const data=await r.json();
+  render(data);
+  document.getElementById('viewPanel').style.display='none';
+  document.getElementById('diaryPanel').style.display='block';
+};
+
+document.getElementById('refreshBtn').onclick=()=>{
+  document.getElementById('viewBtn').click();
+};
+
+document.getElementById('addBtn').onclick=async()=>{
+  const title=document.getElementById('title').value.trim();
+  const content=document.getElementById('content').value.trim();
+  const pwd=document.getElementById('writePwd').value.trim();
+  await fetch(API,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({password:pwd,title,content})
   });
-  requestAnimationFrame(drawSnow);
-}
-drawSnow();
+  document.getElementById('refreshBtn').click();
+};
 
-/* ---------------- view (get) ---------------- */
-const API = '/api/addEntry';
-const VIEW_MSG = document.getElementById('viewMsg');
-const WRITE_MSG = document.getElementById('writeMsg');
-
-/* textarea auto-resize */
-const ta = document.getElementById('content');
-ta.addEventListener('input', e => { e.target.style.height='auto'; e.target.style.height = (e.target.scrollHeight)+'px'; });
-
-function renderEntries(arr){
-  const c = document.getElementById('entries');
-  c.innerHTML = '';
-  if(!Array.isArray(arr) || arr.length===0){ c.innerHTML = '<p style="color:#556;padding:8px">No entries yet.</p>'; return; }
-  arr.slice().reverse().forEach(item=>{
-    const div = document.createElement('div');
-    div.className = 'entry';
-    const t = document.createElement('h3'); t.textContent = item.title || '(no title)';
-    const d = document.createElement('div'); d.className='meta date'; d.textContent = item.date || '';
-    const p = document.createElement('p'); p.textContent = item.content || '';
-    div.appendChild(t); div.appendChild(d); div.appendChild(p);
+function render(arr){
+  const c=document.getElementById('entries');
+  c.innerHTML='';
+  arr.reverse().forEach(e=>{
+    const div=document.createElement('div');
+    div.className='entry';
+    div.innerHTML=`<h3>${e.title}</h3><div class="meta">${e.date}</div><p>${e.content}</p>`;
     c.appendChild(div);
   });
 }
 
-async function fetchEntriesWithView(viewPassword){
-  try{
-    const url = viewPassword ? `${API}?viewPassword=${encodeURIComponent(viewPassword)}` : API;
-    const res = await fetch(url, { method: 'GET' });
-    if(res.status === 401){
-      const j = await res.json(); VIEW_MSG.textContent = j.message || 'Wrong view password'; return null;
-    }
-    if(!res.ok){ VIEW_MSG.textContent = 'Failed to load entries'; return null; }
-    const data = await res.json();
-    renderEntries(Array.isArray(data) ? data : (data.entries || []));
-    VIEW_MSG.textContent = '';
-    return data;
-  }catch(err){
-    console.error(err);
-    VIEW_MSG.textContent = 'Failed to load entries (network)';
-    return null;
-  }
+/* 雪堆积动画 */
+const canvas=document.getElementById('snowCanvas');
+const ctx=canvas.getContext('2d');
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
+window.onresize=resize;resize();
+
+let flakes=[];
+let snowLevel=0;
+let melting=false;
+
+for(let i=0;i<120;i++){
+  flakes.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*3+1,s:Math.random()*1+0.5});
 }
 
-/* UI handlers */
-document.getElementById('viewBtn').addEventListener('click', async () => {
-  VIEW_MSG.textContent = 'Checking...';
-  const vp = document.getElementById('viewPwd').value.trim();
-  const ok = await fetchEntriesWithView(vp);
-  if(ok !== null){
-    document.getElementById('viewPanel').style.display = 'none';
-    document.getElementById('diaryPanel').style.display = 'block';
-  }
-});
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-// 已移除 viewGuestBtn 相关事件绑定
+  // 雪地
+  ctx.fillStyle='white';
+  ctx.fillRect(0,canvas.height-snowLevel,canvas.width,snowLevel);
 
-document.getElementById('refreshBtn').addEventListener('click', ()=> {
-  const vp = document.getElementById('viewPwd').value.trim();
-  fetchEntriesWithView(vp);
-});
+  flakes.forEach(f=>{
+    ctx.beginPath();
+    ctx.arc(f.x,f.y,f.r,0,Math.PI*2);
+    ctx.fill();
 
-document.getElementById('addBtn').addEventListener('click', async ()=>{
-  WRITE_MSG.textContent = '';
-  const title = document.getElementById('title').value.trim();
-  const content = document.getElementById('content').value.trim();
-  const writePwd = document.getElementById('writePwd').value.trim();
-  if(!title || !content || !writePwd){ WRITE_MSG.textContent = 'All fields required'; return; }
-
-  try{
-    const res = await fetch(API, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ password: writePwd, title, content })
-    });
-    const j = await res.json();
-    if(res.ok){
-      document.getElementById('title').value=''; document.getElementById('content').value=''; document.getElementById('writePwd').value='';
-      WRITE_MSG.style.color = '#0a6'; WRITE_MSG.textContent = 'Entry added';
-      setTimeout(()=>{ const vp = document.getElementById('viewPwd').value.trim(); fetchEntriesWithView(vp); }, 600);
-    } else {
-      WRITE_MSG.style.color = '#c0392b'; WRITE_MSG.textContent = j.message || 'Failed to add entry';
+    f.y+=f.s;
+    if(f.y>canvas.height-snowLevel){
+      if(!melting) snowLevel+=0.05;
+      f.y=0;
+      f.x=Math.random()*canvas.width;
     }
-  }catch(err){
-    console.error(err);
-    WRITE_MSG.style.color = '#c0392b'; WRITE_MSG.textContent = 'Network error, failed to add entry';
+  });
+
+  if(snowLevel>=canvas.height){
+    melting=true;
   }
-});
+  if(melting){
+    snowLevel-=0.3;
+    if(snowLevel<=0){
+      melting=false;
+      snowLevel=0;
+    }
+  }
+
+  requestAnimationFrame(draw);
+}
+draw();
 </script>
 </body>
 </html>
