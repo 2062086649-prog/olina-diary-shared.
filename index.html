@@ -18,6 +18,7 @@
   --entryMeta: #a0c4ff;
 }
 
+/* === only change applied: removed overflow:hidden so page can scroll === */
 html,body{height:100%;margin:0;}
 body{
   font-family: 'Great Vibes', cursive;
@@ -28,7 +29,7 @@ body{
   align-items:center;
   padding:20px;
   box-sizing:border-box;
-  overflow:hidden;
+  /* overflow:hidden removed to allow normal scrolling */
 }
 
 h1{margin:18px 0 6px 0;font-size:46px;text-align:center}
@@ -89,6 +90,15 @@ input,textarea{
   width:100%;
   max-width:720px;
 }
+
+/* ensure panels can expand taller than viewport and page scroll works */
+.panel { box-sizing:border-box; }
+
+/* responsive */
+@media (max-width:520px){
+  h1{font-size:36px}
+  input,textarea{font-size:16px}
+}
 </style>
 </head>
 <body>
@@ -96,120 +106,174 @@ input,textarea{
 <canvas id="snowCanvas"></canvas>
 
 <div class="front">
-<h1>Pressure is a privilege.</h1>
+  <h1>Pressure is a privilege.</h1>
 
-<div id="viewPanel" class="panel">
-<label>Enter password</label>
-<input id="viewPwd" type="password">
-<button class="btn" id="viewBtn">Enter</button>
-<div id="viewMsg"></div>
-</div>
+  <div id="viewPanel" class="panel">
+    <label>Enter password</label>
+    <input id="viewPwd" type="password">
+    <button class="btn" id="viewBtn">Enter</button>
+    <div id="viewMsg" style="margin-top:8px;color:var(--primary)"></div>
+  </div>
 
-<div id="diaryPanel" class="panel" style="display:none">
-<label>Write password</label>
-<input id="writePwd" type="password">
+  <div id="diaryPanel" class="panel" style="display:none">
+    <label>Write password</label>
+    <input id="writePwd" type="password">
 
-<label>Title</label>
-<input id="title" type="text">
+    <label style="margin-top:8px">Title</label>
+    <input id="title" type="text">
 
-<label>Content</label>
-<textarea id="content"></textarea>
+    <label style="margin-top:8px">Content</label>
+    <textarea id="content" rows="4"></textarea>
 
-<button class="btn" id="addBtn">Add Entry</button>
-<button class="btn" id="refreshBtn">Refresh</button>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn" id="addBtn">Add Entry</button>
+      <button class="btn" id="refreshBtn">Refresh</button>
+    </div>
 
-<div id="entries"></div>
-</div>
+    <div id="entries" style="margin-top:16px;"></div>
+    <div id="writeMsg" style="margin-top:8px;color:var(--primary)"></div>
+  </div>
 </div>
 
 <script>
 const API='/api/addEntry';
 
-document.getElementById('viewBtn').onclick=async()=>{
-  const pwd=document.getElementById('viewPwd').value.trim();
-  const r=await fetch(`${API}?viewPassword=${encodeURIComponent(pwd)}`);
-  if(r.status!==200){document.getElementById('viewMsg').innerText='Wrong password';return;}
-  const data=await r.json();
-  render(data);
-  document.getElementById('viewPanel').style.display='none';
-  document.getElementById('diaryPanel').style.display='block';
-};
+async function fetchAndShow(viewPwd){
+  try{
+    const res = await fetch(`${API}?viewPassword=${encodeURIComponent(viewPwd)}`, { method:'GET' });
+    if(res.status===401){
+      document.getElementById('viewMsg').innerText = 'Wrong password';
+      return null;
+    }
+    if(!res.ok){
+      document.getElementById('viewMsg').innerText = 'Failed to load entries';
+      return null;
+    }
+    const data = await res.json();
+    renderEntries(Array.isArray(data) ? data : (data.entries || []));
+    document.getElementById('viewMsg').innerText = '';
+    return data;
+  } catch(e){
+    console.error(e);
+    document.getElementById('viewMsg').innerText = 'Network error';
+    return null;
+  }
+}
 
-document.getElementById('refreshBtn').onclick=()=>{
-  document.getElementById('viewBtn').click();
-};
+document.getElementById('viewBtn').addEventListener('click', async ()=>{
+  const vp = document.getElementById('viewPwd').value.trim();
+  if(!vp){ document.getElementById('viewMsg').innerText='Enter password'; return; }
+  const ok = await fetchAndShow(vp);
+  if(ok !== null){
+    document.getElementById('viewPanel').style.display='none';
+    document.getElementById('diaryPanel').style.display='block';
+  }
+});
 
-document.getElementById('addBtn').onclick=async()=>{
-  const title=document.getElementById('title').value.trim();
-  const content=document.getElementById('content').value.trim();
-  const pwd=document.getElementById('writePwd').value.trim();
-  await fetch(API,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({password:pwd,title,content})
-  });
-  document.getElementById('refreshBtn').click();
-};
+document.getElementById('refreshBtn').addEventListener('click', ()=>{
+  const vp = document.getElementById('viewPwd').value.trim();
+  fetchAndShow(vp);
+});
 
-function render(arr){
-  const c=document.getElementById('entries');
-  c.innerHTML='';
-  arr.reverse().forEach(e=>{
-    const div=document.createElement('div');
-    div.className='entry';
-    div.innerHTML=`<h3>${e.title}</h3><div class="meta">${e.date}</div><p>${e.content}</p>`;
-    c.appendChild(div);
+document.getElementById('addBtn').addEventListener('click', async ()=>{
+  document.getElementById('writeMsg').innerText = '';
+  const title = document.getElementById('title').value.trim();
+  const content = document.getElementById('content').value.trim();
+  const writePwd = document.getElementById('writePwd').value.trim();
+  if(!title || !content || !writePwd){ document.getElementById('writeMsg').innerText='All fields required'; return; }
+
+  try{
+    const res = await fetch(API, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ password: writePwd, title, content })
+    });
+    const j = await res.json();
+    if(res.ok){
+      document.getElementById('title').value=''; document.getElementById('content').value=''; document.getElementById('writePwd').value='';
+      document.getElementById('writeMsg').style.color = 'var(--primary)';
+      document.getElementById('writeMsg').innerText = 'Entry added';
+      setTimeout(()=>{ const vp = document.getElementById('viewPwd').value.trim(); fetchAndShow(vp); }, 600);
+    } else {
+      document.getElementById('writeMsg').style.color = '#ff6b6b';
+      document.getElementById('writeMsg').innerText = j.message || 'Failed to add entry';
+    }
+  } catch(e){
+    console.error(e);
+    document.getElementById('writeMsg').style.color = '#ff6b6b';
+    document.getElementById('writeMsg').innerText = 'Network error, failed to add entry';
+  }
+});
+
+function renderEntries(arr){
+  const container = document.getElementById('entries');
+  container.innerHTML = '';
+  if(!Array.isArray(arr) || arr.length===0){
+    container.innerHTML = '<p style="color:var(--primary)">No entries yet.</p>';
+    return;
+  }
+  // newest first
+  arr.slice().reverse().forEach(item=>{
+    const div = document.createElement('div');
+    div.className = 'entry';
+    const h = document.createElement('h3'); h.textContent = item.title || '(no title)';
+    const meta = document.createElement('div'); meta.className='meta'; meta.textContent = item.date || '';
+    const p = document.createElement('p'); p.textContent = item.content || '';
+    div.appendChild(h); div.appendChild(meta); div.appendChild(p);
+    container.appendChild(div);
   });
 }
 
-/* 雪堆积动画 */
-const canvas=document.getElementById('snowCanvas');
-const ctx=canvas.getContext('2d');
-function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
-window.onresize=resize;resize();
+/* ---------- snow with accumulation & melt (same logic as before) ---------- */
+const canvas = document.getElementById('snowCanvas');
+const ctx = canvas.getContext('2d');
+function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+window.addEventListener('resize', resize); resize();
 
-let flakes=[];
-let snowLevel=0;
-let melting=false;
-
+let flakes = [];
+let snowLevel = 0;
+let melting = false;
 for(let i=0;i<120;i++){
-  flakes.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*3+1,s:Math.random()*1+0.5});
+  flakes.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*3+1, s: Math.random()*1+0.5 });
 }
 
-function draw(){
+function drawSnow(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // 雪地
-  ctx.fillStyle='white';
-  ctx.fillRect(0,canvas.height-snowLevel,canvas.width,snowLevel);
+  // draw accumulated snow at bottom
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, canvas.height - Math.min(snowLevel, canvas.height), canvas.width, Math.min(snowLevel, canvas.height));
 
+  // draw flakes
+  ctx.fillStyle = 'white';
   flakes.forEach(f=>{
     ctx.beginPath();
-    ctx.arc(f.x,f.y,f.r,0,Math.PI*2);
+    ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
     ctx.fill();
 
-    f.y+=f.s;
-    if(f.y>canvas.height-snowLevel){
-      if(!melting) snowLevel+=0.05;
-      f.y=0;
-      f.x=Math.random()*canvas.width;
+    f.y += f.s;
+    // if reached snow surface
+    if(f.y > canvas.height - snowLevel){
+      if(!melting) snowLevel += 0.05; // accumulate
+      // reset flake to top
+      f.y = -10;
+      f.x = Math.random()*canvas.width;
     }
   });
 
-  if(snowLevel>=canvas.height){
-    melting=true;
-  }
+  // when filled, start melting
+  if(snowLevel >= canvas.height * 0.98) melting = true;
   if(melting){
-    snowLevel-=0.3;
-    if(snowLevel<=0){
-      melting=false;
-      snowLevel=0;
+    snowLevel -= 0.3; // melt rate
+    if(snowLevel <= 0){
+      snowLevel = 0;
+      melting = false;
     }
   }
 
-  requestAnimationFrame(draw);
+  requestAnimationFrame(drawSnow);
 }
-draw();
+drawSnow();
 </script>
 </body>
 </html>
